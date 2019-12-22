@@ -55,6 +55,16 @@ std::string getGatewayUrl()
 	return (*gatewayUrl).substr(6, (*gatewayUrl).size() - 6);
 }
 
+boost::optional<uint32_t> getHeartbeatInterval(const boost::beast::multi_buffer::const_buffers_type& data)
+{
+	boost::property_tree::ptree ptree;
+	std::string response = boost::beast::buffers_to_string(data);
+	std::istringstream is(response);
+	boost::property_tree::read_json(is, ptree);
+
+	return ptree.get_optional<uint32_t>("d.heartbeat_interval");
+}
+
 int main()
 {
 	std::string gatewayUrl = getGatewayUrl();
@@ -74,6 +84,15 @@ int main()
 		boost::asio::connect(websocket.next_layer().next_layer(), endpoints);
 		websocket.next_layer().handshake(boost::asio::ssl::stream_base::client);
 		websocket.handshake(gatewayUrl, "/?v=6&encoding=json");
+
+		boost::beast::multi_buffer buffer;
+		websocket.read(buffer);
+
+		auto heartbeatInterval = getHeartbeatInterval(buffer.data());
+		if (!heartbeatInterval)
+		{
+			return 0;
+		}
 	}
 	catch (const std::exception& e)
 	{
