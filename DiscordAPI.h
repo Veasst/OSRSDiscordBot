@@ -1,5 +1,7 @@
 #pragma once
 
+#define CURL_STATICLIB
+
 #include <string>
 
 #include <boost/property_tree/json_parser.hpp>
@@ -8,7 +10,6 @@
 
 namespace discord::api
 {
-
 	size_t writeResponse(const char* source, const size_t size, const size_t numberOfElements, void* destination)
 	{
 		((std::string*)destination)->append((char*)source, size * numberOfElements);
