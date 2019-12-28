@@ -14,14 +14,12 @@ namespace discord::websocket
 			throw std::runtime_error{ "Couldn't fetch gatewayUrl" };
 		}
 
-		boost::asio::io_context ioc;
-		boost::asio::ip::tcp::resolver resolver{ ioc };
 		boost::asio::ssl::context sslcontext{ boost::asio::ssl::context::tlsv13_client };
-
-		websocket = std::make_unique<boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>>>(ioc, sslcontext);
+		websocket = std::make_shared<boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>>>(ioc, sslcontext);
 
 		try
 		{
+			boost::asio::ip::tcp::resolver resolver{ ioc };
 			auto const endpoints = resolver.resolve(gatewayUrl, "443");
 			boost::asio::connect(websocket->next_layer().next_layer(), endpoints);
 			websocket->next_layer().handshake(boost::asio::ssl::stream_base::client);
@@ -35,19 +33,13 @@ namespace discord::websocket
 			{
 				throw std::runtime_error{ "Couldn't fetch heartbeatInterval" };
 			}
+
+			heartbeatManager = std::make_unique<HeartbeatManager>(websocket, *heartbeatInterval);
+			heartbeatManager->start();
 		}
 		catch (const std::exception&)
 		{
-			websocket.release();
 			throw;
-		}
-	}
-
-	DiscordWebSocket::~DiscordWebSocket()
-	{
-		if (websocket)
-		{
-			websocket.release();
 		}
 	}
 
