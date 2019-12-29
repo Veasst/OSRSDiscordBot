@@ -1,12 +1,13 @@
 #include "HeartbeatManager.h"
 
 #include <chrono>
-#include <iostream>
+
+#include <boost/property_tree/json_parser.hpp>
 
 namespace discord::websocket
 {
 	HeartbeatManager::HeartbeatManager(const std::shared_ptr<boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>>>& websocket, const uint32_t heartbeatInterval)
-		: isRunning(false), lastTime(), websocket(websocket), heartbeatInterval(heartbeatInterval)
+		: isRunning(false), lastTime(), websocket(websocket), heartbeatInterval(heartbeatInterval), sequenceNumber("null")
 	{
 	}
 
@@ -50,8 +51,22 @@ namespace discord::websocket
 
 	void HeartbeatManager::sendHeartbeat()
 	{
+		std::ostringstream message;
+		message << "{\"op\":1,\"d\":" << sequenceNumber << "}";
+		websocket->write(boost::asio::buffer(message.str()));
+		handleHeartbeatResponse();
+	}
+
+	void HeartbeatManager::handleHeartbeatResponse()
+	{
 		boost::beast::multi_buffer buffer;
-		websocket->write(boost::asio::buffer(std::string{ "{\"op\":1,\"d\":null}" }));
 		websocket->read(buffer);
+
+		boost::property_tree::ptree ptree;
+		std::string response = boost::beast::buffers_to_string(buffer.data());
+		std::istringstream is(response);
+		boost::property_tree::read_json(is, ptree);
+
+		sequenceNumber = ptree.get<std::string>("s");
 	}
 }

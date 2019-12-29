@@ -18,11 +18,13 @@ namespace discord::websocket
 	private:
 		void run();
 		void sendHeartbeat();
+		void handleHeartbeatResponse();
 
 		bool isRunning;
 		uint32_t heartbeatInterval;
 		std::chrono::system_clock::time_point lastTime;
 		std::shared_ptr<boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>>> websocket;
 		std::thread heartbeatThread;
+		std::string sequenceNumber;
 	};
 }
