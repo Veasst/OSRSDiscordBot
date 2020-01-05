@@ -7,7 +7,7 @@
 namespace discord::websocket
 {
 	HeartbeatManager::HeartbeatManager(const std::shared_ptr<boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>>>& websocket, const uint32_t heartbeatInterval, const std::shared_ptr<MessageListener>& messageListener)
-		: isRunning(false), lastTime(), websocket(websocket), heartbeatInterval(heartbeatInterval), sequenceNumber("null")
+		: heartbeatInterval(heartbeatInterval), isRunning(false), lastTime(), websocket(websocket), sequenceNumber("null")
 	{
 		const auto heartbeatACKOperation = 11u;
 		messageListener->registerOperationHandler(heartbeatACKOperation, std::bind(&HeartbeatManager::handleHeartbeatResponse, this, std::placeholders::_1));

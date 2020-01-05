@@ -35,7 +35,6 @@ namespace discord::websocket
 			}
 
 			std::ostringstream message;
-			std::string token = "";
 			message << "{\"op\":2,\"d\":{\"token\":\"" << discordToken << "\",\"properties\":{\"os\":\"windows\",\"browser\":\"CppDiscordLib\",\"device\":\"CppDiscordLib\"}},\"s\":null,\"t\":null}";
 
 			websocket->write(boost::asio::buffer(message.str()));
