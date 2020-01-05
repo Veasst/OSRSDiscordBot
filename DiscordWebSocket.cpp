@@ -6,7 +6,7 @@
 
 namespace discord::websocket
 {
-	DiscordWebSocket::DiscordWebSocket()
+	DiscordWebSocket::DiscordWebSocket(const std::string& discordToken)
 	{
 		std::string gatewayUrl = discord::api::getGatewayUrl();
 		if (gatewayUrl.empty())
@@ -34,7 +34,17 @@ namespace discord::websocket
 				throw std::runtime_error{ "Couldn't fetch heartbeatInterval" };
 			}
 
-			heartbeatManager = std::make_unique<HeartbeatManager>(websocket, *heartbeatInterval);
+			std::ostringstream message;
+			std::string token = "";
+			message << "{\"op\":2,\"d\":{\"token\":\"" << discordToken << "\",\"properties\":{\"os\":\"windows\",\"browser\":\"CppDiscordLib\",\"device\":\"CppDiscordLib\"}},\"s\":null,\"t\":null}";
+
+			websocket->write(boost::asio::buffer(message.str()));
+			websocket->read(buffer);
+
+			messageListener = std::make_shared<MessageListener>(websocket);
+			messageListener->run();
+
+			heartbeatManager = std::make_unique<HeartbeatManager>(websocket, *heartbeatInterval, messageListener);
 			heartbeatManager->start();
 		}
 		catch (const std::exception&)
