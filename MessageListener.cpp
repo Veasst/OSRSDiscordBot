@@ -12,9 +12,10 @@ namespace discord::websocket
 	void MessageListener::run()
 	{
 		boost::property_tree::ptree ptree;
+		boost::beast::multi_buffer buffer;
 		while (1)
 		{
-			boost::beast::multi_buffer buffer;
+			buffer.clear();
 			websocket->read(buffer);
 
 			std::string response = boost::beast::buffers_to_string(buffer.data());

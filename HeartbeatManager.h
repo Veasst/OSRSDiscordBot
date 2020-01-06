@@ -20,6 +20,7 @@ namespace discord::websocket
 	private:
 		void run();
 		void sendHeartbeat();
+		void handleEvent(const std::string& message);
 		void handleHeartbeatResponse(const std::string& message);
 
 		bool isRunning;

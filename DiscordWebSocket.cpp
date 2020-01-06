@@ -41,10 +41,10 @@ namespace discord::websocket
 			websocket->read(buffer);
 
 			messageListener = std::make_shared<MessageListener>(websocket);
-			messageListener->run();
 
 			heartbeatManager = std::make_unique<HeartbeatManager>(websocket, *heartbeatInterval, messageListener);
 			heartbeatManager->start();
+			messageListener->run();
 		}
 		catch (const std::exception&)
 		{
